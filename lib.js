@@ -30,18 +30,38 @@ const packetsFab = () => {
     };
 };
 
+const dataCollector = () => {
+    const collection = {
+        server:  Buffer.from([]),
+        client:  Buffer.from([])
+    };
+    return {
+        set(key, data) {
+            collection[key] = Buffer.concat([
+                collection[key],
+                data
+            ])
+        },
+        get() {
+            return collection;
+        }
+    }
+};
+
 const server = async(
     client,
     packets,
     {
         listen = 8010
     } = {}) => {
-    const server = createServer((cc) => {
+        const server = createServer({
+            keepAlive: false,
+            allowHalfOpen: false
+        }, (cc) => {
+        const dt = dataCollector();
         const c = client(() => {
-            let serverPacket = Buffer.from([]);
-            let clientPacket = Buffer.from([]);
             cc.on('data', (d) => {
-                serverPacket = Buffer.concat([serverPacket, d]);
+                dt.set('server', d);
                 c.write(d);
             });
             cc.on('error', (e) => {
@@ -49,18 +69,17 @@ const server = async(
                 console.error(e);
             });
             c.on('data', (d) => {
-                clientPacket = Buffer.concat([clientPacket, d]);
+                dt.set('client', d);
                 cc.write(d);
             });
             c.on('error', (e) => {
                 console.error('client connected to origin Error');
                 console.error(e);
+                dt.get().server.length && packets.push(dt.get());
+                cc.end();
             });
             c.on('end', () => {
-                packets.push({
-                    server: serverPacket,
-                    client: clientPacket
-                });
+                dt.get().server.length && packets.push(dt.get());
                 cc.end();
             });
         });
@@ -82,7 +101,9 @@ const clientFab = ({
     } = parse(destination);
     return createConnection({
         port,
-        host
+        host,
+        keepAlive: false,
+        allowHalfOpen: false
     }, onConn);
 };
 

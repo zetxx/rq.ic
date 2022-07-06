@@ -41,10 +41,14 @@ const toStr = ({
 (async() => {
     const packets = await lib(conf.interceptor);
     wsRouter.get('/', async (ctx, next) => {
-        packets.items().map(
-            (item, idx) =>
-                ctx.websocket.send(toStr({...item, idx}))
-        );
+        try {
+            packets.items().map(
+                (item, idx) =>
+                    ctx.websocket.send(toStr({...item, idx}))
+            );
+        } catch (e) {
+            console.error(e);
+        }
         packets.reg((p, idx) => {
             ctx.websocket.send(toStr({...p, idx}));
         });

@@ -7,6 +7,9 @@
 const {HTTPParser} = require('http-parser-js');
 
 function parseRequest(input) {
+    if (!input.length) {
+        return input;
+    }
     const parser = new HTTPParser(HTTPParser.REQUEST);
     let complete = false;
     let shouldKeepAlive;
@@ -69,6 +72,9 @@ function parseRequest(input) {
 }
 
 function parseResponse(input) {
+    if (!input.length) {
+        return input;
+    }
     const parser = new HTTPParser(HTTPParser.RESPONSE);
     let complete = false;
     let shouldKeepAlive;
