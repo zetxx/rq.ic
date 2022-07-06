@@ -41,7 +41,10 @@ const toStr = ({
     const packets = await lib();
     // Using routes
     wsRouter.get('/', async (ctx, next) => {
-        packets.items().map((item, idx) => ctx.websocket.send(toStr({...item, idx})));
+        packets.items().map(
+            (item, idx) =>
+                ctx.websocket.send(toStr({...item, idx}))
+        );
         packets.reg((p, idx) => {
             ctx.websocket.send(toStr({...p, idx}));
         });

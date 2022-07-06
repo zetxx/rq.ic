@@ -1,25 +1,36 @@
 <html>
     <style>
+        #data, #data li, #data span, #data code {
+            display: block;
+            overflow: hidden;
+        }
         #data li{
             border: 1px solid rgb(62, 69, 103);
             padding: 3px;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.js" integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY=" crossorigin="anonymous"></script>
     <body>
         <ul id="data"></ul>
         <script>
             ws = new WebSocket("ws://localhost:3000");
-            // ws.addEventListener('open', () => { ws.send("ping"); });
             ws.addEventListener('message', ({data}) => {
                 const [idx, server, client] = JSON.parse(data);
                 const cont = document.getElementById("data");
-                const text = document.createTextNode(
+                const textSpan = document.createTextNode(
                     `${idx + 1}: ${server.method} ${server.url}; ${client.statusCode};`
                 );
+                const textCode = document.createTextNode(
+                    JSON.stringify([idx, server, client], null, 2)
+                );
                 const li = document.createElement('li');
-                li.appendChild(text);
+                const span = document.createElement('span');
+                const code = document.createElement('code');
+                span.appendChild(textSpan);
+                code.appendChild(textCode);
+                li.appendChild(span);
+                li.appendChild(code);
                 cont.appendChild(li);
-                console.log(data)
             });
         </script>
     </body>
