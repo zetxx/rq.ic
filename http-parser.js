@@ -4,7 +4,7 @@
 */
 
 // Replace the require when using the module from npm.
-const { HTTPParser } = require('http-parser-js');
+const {HTTPParser} = require('http-parser-js');
 
 function parseRequest(input) {
     const parser = new HTTPParser(HTTPParser.REQUEST);

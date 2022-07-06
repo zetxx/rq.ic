@@ -1,3 +1,5 @@
+const package = require('./package.json');
+const conf = require('rc')(package.name);
 const Koa = require('koa');
 const Router = require('@koa/router');
 const websockify = require('koa-websocket');
@@ -10,7 +12,6 @@ const app = websockify(new Koa());
 const wsRouter = Router();
 const router = Router();
 
-// Regular middleware
 wsRouter.use((ctx, next) => {
     return next(ctx);
 });
@@ -38,8 +39,7 @@ const toStr = ({
 };
 
 (async() => {
-    const packets = await lib();
-    // Using routes
+    const packets = await lib(conf.interceptor);
     wsRouter.get('/', async (ctx, next) => {
         packets.items().map(
             (item, idx) =>
@@ -48,19 +48,12 @@ const toStr = ({
         packets.reg((p, idx) => {
             ctx.websocket.send(toStr({...p, idx}));
         });
-        // ctx.websocket.on('message', (message) => {
-             // do something with the message from client
-        //     if (message.toString() === 'ping') {
-        //         ctx.websocket.send('pong');
-        //     }
-        // });
         return next;
     });
     router.get('/queue/:id', (ctx, next) => {
         const id = parseInt(ctx.params.id);
         if (!isNaN(id) && packets.items()[id]) {
             ctx.body = toObj({...packets.items()[id], idx: id});
-            // return toStr({...packets.items()[id], idx: id});
         } else {
             ctx.body = 'N/A';
         }
@@ -68,8 +61,6 @@ const toStr = ({
     });
     app.use(serve('html'));
 
-    // Attach both routers
-    // Note it's app.ws.use for our ws router
     app.ws.use(
         wsRouter.routes()
     ).use(
@@ -81,5 +72,10 @@ const toStr = ({
         router.allowedMethods()
     );
 
-    app.listen(3000);
+    app.listen(
+        conf.frontend.listen,
+        () => console.info(
+            `Frontend is listening: ${conf.frontend.listen}`
+        )
+    );
 })();
