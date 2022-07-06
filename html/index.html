@@ -1,0 +1,26 @@
+<html>
+    <style>
+        #data li{
+            border: 1px solid rgb(62, 69, 103);
+            padding: 3px;
+        }
+    </style>
+    <body>
+        <ul id="data"></ul>
+        <script>
+            ws = new WebSocket("ws://localhost:3000");
+            // ws.addEventListener('open', () => { ws.send("ping"); });
+            ws.addEventListener('message', ({data}) => {
+                const [idx, server, client] = JSON.parse(data);
+                const cont = document.getElementById("data");
+                const text = document.createTextNode(
+                    `${idx + 1}: ${server.method} ${server.url}; ${client.statusCode};`
+                );
+                const li = document.createElement('li');
+                li.appendChild(text);
+                cont.appendChild(li);
+                console.log(data)
+            });
+        </script>
+    </body>
+</html>
