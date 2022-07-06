@@ -21,15 +21,34 @@
     <body>
         <ul id="data"></ul>
         <script>
+            const bodyTrans = (data, params) => {
+                if (
+                    data &&
+                    params &&
+                    params.headers.findIndex((h) => h.indexOf('application/json') >= 0)
+                ) {
+                    return JSON.parse(window.atob(data));
+                }
+                return data;
+            };
             ws = new WebSocket("ws://localhost:3000");
             ws.addEventListener('message', ({data}) => {
-                const [idx, server, client] = JSON.parse(data);
+                const [idx, {body: sBody, ...server}, {body: cBody, ...client}] = JSON.parse(data);
                 const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
                     `${idx + 1}: ${server.method} ${server.url}; ${client.statusCode};`
                 );
                 const textCode = document.createTextNode(
-                    JSON.stringify([idx, server, client], null, 2)
+                    JSON.stringify({
+                        server: {
+                            ...server,
+                            body: bodyTrans(sBody, server)
+                        },
+                        client: {
+                            ...client,
+                            body: bodyTrans(cBody, client)
+                        }
+                    }, null, 2)
                 );
                 const li = document.createElement('li');
                 const span = document.createElement('span');
