@@ -17,21 +17,23 @@
             display: none;
         }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.slim.js" integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY=" crossorigin="anonymous"></script>
     <body>
         <ul id="data"></ul>
         <script>
             const bodyTrans = (data, params) => {
                 if (
                     data &&
-                    params &&
-                    params.headers.findIndex((h) => h.indexOf('application/json') >= 0)
+                    params
                 ) {
-                    return JSON.parse(window.atob(data));
+                    if (params.headers.findIndex((h) => h.indexOf('application/json') >= 0) >= 0) {
+                        return JSON.parse(window.atob(data));
+                    } else if (params.headers.findIndex((h) => h.indexOf('xml') >= 0) >= 0) {
+                        return window.atob(data);
+                    }
                 }
                 return data;
             };
-            ws = new WebSocket("ws://localhost:3000");
+            ws = new WebSocket(`ws://localhost:${window.location.port}`);
             ws.addEventListener('message', ({data}) => {
                 const [idx, {body: sBody, ...server}, {body: cBody, ...client}] = JSON.parse(data);
                 const cont = document.getElementById("data");
