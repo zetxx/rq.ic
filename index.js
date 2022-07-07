@@ -17,23 +17,23 @@ wsRouter.use((ctx, next) => {
 });
 
 const toObj = ({
-    server,
-    client,
+    request,
+    response,
     idx = 'next'
 }) => [
     idx,
-    httpParser.parseRequest(server),
-    httpParser.parseResponse(client)
+    httpParser.parseRequest(request),
+    httpParser.parseResponse(response)
 ];
 
 const toStr = ({
-    server,
-    client,
+    request,
+    response,
     idx = 'next'
 }) => {
     return JSON.stringify(toObj({
-        server,
-        client,
+        request,
+        response,
         idx
     }));
 };
@@ -70,9 +70,9 @@ const toStr = ({
                 parseInt(ctx.params.from),
                 parseInt(ctx.params.to)
             )
-            .map(({client, server}) => ({
-                client: client.toString('base64'),
-                server: server.toString('base64')
+            .map(({response, request}) => ({
+                response: response.toString('base64'),
+                request: request.toString('base64')
             }));
         return next;
     });

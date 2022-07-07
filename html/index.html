@@ -40,20 +40,20 @@
             };
             ws = new WebSocket(`ws://localhost:${window.location.port}`);
             ws.addEventListener('message', ({data}) => {
-                const [idx, {body: sBody, ...server}, {body: cBody, ...client}] = JSON.parse(data);
+                const [idx, {body: sBody, ...request}, {body: cBody, ...response}] = JSON.parse(data);
                 const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
-                    `${idx + 1}: ${server.method} ${server.url}; ${client.statusCode};`
+                    `${idx + 1}: ${request.method} ${request.url}; ${response.statusCode};`
                 );
                 const textCode = document.createTextNode(
                     JSON.stringify({
-                        server: {
-                            ...server,
-                            body: bodyTrans(sBody, server)
+                        request: {
+                            ...request,
+                            body: bodyTrans(sBody, request)
                         },
-                        client: {
-                            ...client,
-                            body: bodyTrans(cBody, client)
+                        response: {
+                            ...response,
+                            body: bodyTrans(cBody, response)
                         }
                     }, null, 2)
                 );

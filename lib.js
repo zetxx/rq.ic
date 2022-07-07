@@ -32,8 +32,8 @@ const packetsFab = () => {
 
 const dataCollector = () => {
     const collection = {
-        server:  Buffer.from([]),
-        client:  Buffer.from([])
+        request:  Buffer.from([]),
+        response:  Buffer.from([])
     };
     return {
         set(key, data) {
@@ -61,7 +61,7 @@ const server = async(
         const dt = dataCollector();
         const c = client(() => {
             cc.on('data', (d) => {
-                dt.set('server', d);
+                dt.set('request', d);
                 c.write(d);
             });
             cc.on('error', (e) => {
@@ -69,17 +69,17 @@ const server = async(
                 console.error(e);
             });
             c.on('data', (d) => {
-                dt.set('client', d);
+                dt.set('response', d);
                 cc.write(d);
             });
             c.on('error', (e) => {
                 console.error('client connected to origin Error');
                 console.error(e);
-                dt.get().server.length && packets.push(dt.get());
+                dt.get().request.length && packets.push(dt.get());
                 cc.end();
             });
             c.on('end', () => {
-                dt.get().server.length && packets.push(dt.get());
+                dt.get().request.length && packets.push(dt.get());
                 cc.end();
             });
         });
