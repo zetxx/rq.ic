@@ -26,7 +26,11 @@
                     params
                 ) {
                     if (params.headers.findIndex((h) => h.indexOf('application/json') >= 0) >= 0) {
-                        return JSON.parse(window.atob(data));
+                        try {
+                            return JSON.parse(window.atob(data));
+                        } catch (e) {
+                            return window.atob(data);
+                        }
                     } else if (params.headers.findIndex((h) => h.indexOf('xml') >= 0) >= 0) {
                         return window.atob(data);
                     }

@@ -63,6 +63,19 @@ const toStr = ({
         }
         return next;
     });
+    router.get('/export/:from/:to', (ctx, next) => {
+        ctx.body = packets
+            .items()
+            .slice(
+                parseInt(ctx.params.from),
+                parseInt(ctx.params.to)
+            )
+            .map(({client, server}) => ({
+                client: client.toString('base64'),
+                server: server.toString('base64')
+            }));
+        return next;
+    });
     app.use(serve('html'));
 
     app.ws.use(
