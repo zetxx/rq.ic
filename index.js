@@ -76,6 +76,11 @@ const toStr = ({
             }));
         return next;
     });
+
+    router.get('/reset', (ctx, next) => {
+        ctx.body = packets.reset();
+        return next;
+    });
     app.use(serve('html'));
 
     app.ws.use(

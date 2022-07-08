@@ -26,6 +26,10 @@ const packetsFab = () => {
         },
         items() {
             return queue;
+        },
+        reset() {
+            queue = [];
+            return queue;
         }
     };
 };
