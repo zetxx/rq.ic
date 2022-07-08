@@ -42,7 +42,7 @@ const toStr = ({
     const packets = await lib(conf.interceptor);
     wsRouter.get('/', async (ctx, next) => {
         try {
-            packets.items().map(
+            packets.items().sort().map(
                 (item, idx) =>
                     ctx.websocket.send(toStr({...item, idx}))
             );

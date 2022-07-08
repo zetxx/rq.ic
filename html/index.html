@@ -5,8 +5,10 @@
             overflow: hidden;
         }
         #data li{
-            border: 1px solid rgb(62, 69, 103);
+            border: 1px solid rgb(153, 174, 193);
             padding: 3px;
+            background-color: rgb(208, 228, 246);
+            margin-bottom: 2px;
         }
         #data span {
             background-color: bisque;
@@ -19,7 +21,6 @@
             background-color: #e19687;
         }
         #data pre {
-            background-color: aliceblue;
             display: none;
             overflow: auto;
         }
@@ -27,25 +28,39 @@
     <body>
         <ul id="data"></ul>
         <script>
-            const bodyTrans = (data, params) => {
+            const decompressBlob = async(base64) => {
+                const blob = await (await fetch(`data:application/octet-stream;base64,${base64}`)).blob();
+                let ds = new DecompressionStream('gzip');
+                const dss = blob.stream().pipeThrough(ds);
+                const dsb = await new Response(dss).blob();
+                return await dsb.text();
+            }
+            const bodyTrans = async(data, params, type) => {
                 if (
                     data &&
                     params
                 ) {
                     if (params.headers.findIndex((h) => h.indexOf('application/json') >= 0) >= 0) {
                         try {
+                            if (type === 'response' && params.headers.findIndex((h) => h.indexOf('gzip') >= 0) >= 0) {
+                                const c = await decompressBlob(data);
+                                return JSON.parse(c);
+                            }
                             return JSON.parse(window.atob(data));
                         } catch (e) {
                             return window.atob(data);
                         }
                     } else if (params.headers.findIndex((h) => h.indexOf('xml') >= 0) >= 0) {
+                        if (type === 'response' && params.headers.findIndex((h) => h.indexOf('gzip') >= 0) >= 0) {
+                            return await decompressBlob(data);
+                        }
                         return window.atob(data);
                     }
                 }
                 return data;
             };
             ws = new WebSocket(`ws://localhost:${window.location.port}`);
-            ws.addEventListener('message', ({data}) => {
+            ws.addEventListener('message', async({data}) => {
                 const [idx, {body: sBody, ...request}, {body: cBody, ...response}] = JSON.parse(data);
                 const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
@@ -55,11 +70,11 @@
                     JSON.stringify({
                         request: {
                             ...request,
-                            body: bodyTrans(sBody, request)
+                            body: await bodyTrans(sBody, request, 'request')
                         },
                         response: {
                             ...response,
-                            body: bodyTrans(cBody, response)
+                            body: await bodyTrans(cBody, response, 'response')
                         }
                     }, null, 2)
                 );
