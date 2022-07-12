@@ -1,8 +1,8 @@
 # Request intercept - view
 
-## Example config
+## Example config, place file `.rq.icrc` in project dir, and put json object as follows.
 
-```js
+```json
 {
     "interceptor": {
         "listen": 8080,
