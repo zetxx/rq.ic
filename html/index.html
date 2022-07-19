@@ -83,12 +83,25 @@
                 const span = document.createElement('span');
                 const code = document.createElement('pre');
                 span.appendChild(textSpan);
+                const repeat = document.createElement('a');
+                repeat.appendChild(document.createTextNode('⧎'));
+                span.appendChild(repeat);
                 span.addEventListener('click', (e) => {
                     if (code.style.display !== 'block') {
                         code.style.display = 'block';
                     } else {
                         code.style.display = 'none';
                     }
+                });
+                repeat.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // ws.send(JSON.stringify({
+                    //    action: 'repeat',
+                    //    idx
+                    //}));
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.open('GET', `/repeat/${idx}`, true);
+                    xhttp.send();
                 });
                 code.appendChild(textCode);
                 li.appendChild(span);

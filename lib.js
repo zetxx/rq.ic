@@ -111,12 +111,38 @@ const clientFab = ({
     }, onConn);
 };
 
+const repeatFab = (client, packets) => (id) => {
+    const packet = packets.items()[id];
+    const dt = dataCollector();
+    dt.set('request', packet.request);
+    const c = client(() => {
+        c.on('data', (d) => {
+            dt.set('response', d);
+            setTimeout(() => c.end(), 5000);
+        });
+        c.on('error', (e) => {
+            console.error('client connected to origin Error');
+            console.error(e);
+        });
+        c.on('end', () => packets.push(dt.get()));
+        c.write(packet.request);
+    });
+};
+
 module.exports = async(config) => {
     const packets = packetsFab();
+    const client = clientFab(config);
+    const repeat = repeatFab(
+        client,
+        packets
+    );
     await server(
-        clientFab(config),
+        client,
         packets,
         config
     );
-    return packets;
+    return {
+        packets,
+        repeat
+    };
 };

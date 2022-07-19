@@ -39,7 +39,7 @@ const toStr = ({
 };
 
 (async() => {
-    const packets = await lib(conf.interceptor);
+    const {packets, repeat} = await lib(conf.interceptor);
     wsRouter.get('/', async (ctx, next) => {
         try {
             packets.items().map(
@@ -74,6 +74,17 @@ const toStr = ({
                 response: response.toString('base64'),
                 request: request.toString('base64')
             }));
+        return next;
+    });
+
+    router.get('/repeat/:id', (ctx, next) => {
+        const id = parseInt(ctx.params.id);
+        if (!isNaN(id) && packets.items()[id]) {
+            repeat(id);
+            ctx.body = 'done';
+        } else {
+            ctx.body = 'N/A';
+        }
         return next;
     });
 
