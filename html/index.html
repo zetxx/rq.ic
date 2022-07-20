@@ -1,8 +1,13 @@
 <html>
     <style>
-        #data, #data li, #data span, #data code {
+        #data, #data li, #data div, #data code, #data span, #data a, #controls,
+        #controls li {
             display: block;
             overflow: hidden;
+        }
+        #data, #controls {
+            margin: 0;
+            padding: 0;
         }
         #data li{
             border: 1px solid rgb(153, 174, 193);
@@ -10,22 +15,50 @@
             background-color: rgb(208, 228, 246);
             margin-bottom: 2px;
         }
-        #data span {
+        #data div {
             background-color: bisque;
             cursor: pointer;
         }
-        #data li.sc200 span {
+        #data li.sc200 div {
             background-color: #7daa7a;
         }
-        #data li.sc500 span {
+        #data li.sc500 div {
             background-color: #e19687;
         }
         #data pre {
             display: none;
             overflow: auto;
         }
+        #data span, #data a{
+            float: left;
+        }
+        #data span {
+            min-width: 500px;
+        }
+        #data a {
+            color: rgb(245, 226, 226);
+            font-weight: bolder;
+        }
+        #controls {
+            margin-bottom: 20px;
+            background-color: #f5fbf4;
+            border-bottom: 2px solid #145a09;
+        }
+        #controls li {
+            float: right;
+        }
+        #controls li.act {
+            cursor: pointer;
+        }
+        #control-space-right {
+            margin-right: 50px;
+        }
     </style>
     <body>
+        <ul id="controls">
+            <li id="control-space-right">&nbsp;</li>
+            <li class="act" id="control-clear">⎚</li>
+        </ul>
         <ul id="data"></ul>
         <script>
             const decompressBlob = async(base64) => {
@@ -81,12 +114,12 @@
                 const li = document.createElement('li');
                 li.classList.add(`sc${response.statusCode}`);
                 const span = document.createElement('span');
+                const div = document.createElement('div');
                 const code = document.createElement('pre');
                 span.appendChild(textSpan);
                 const repeat = document.createElement('a');
-                repeat.appendChild(document.createTextNode('⧎'));
-                span.appendChild(repeat);
-                span.addEventListener('click', (e) => {
+                repeat.appendChild(document.createTextNode('↻'));
+                div.addEventListener('click', (e) => {
                     if (code.style.display !== 'block') {
                         code.style.display = 'block';
                     } else {
@@ -95,18 +128,27 @@
                 });
                 repeat.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // ws.send(JSON.stringify({
-                    //    action: 'repeat',
-                    //    idx
-                    //}));
                     const xhttp = new XMLHttpRequest();
                     xhttp.open('GET', `/repeat/${idx}`, true);
                     xhttp.send();
                 });
                 code.appendChild(textCode);
-                li.appendChild(span);
+                div.appendChild(span);
+                div.appendChild(repeat);
+                li.appendChild(div);
                 li.appendChild(code);
                 cont.appendChild(li);
+
+                document
+                    .getElementById("control-clear")
+                    .addEventListener('click', () => {
+                        cont.childNodes.forEach((child) => {
+                            child.remove();
+                        });
+                        const xhttp = new XMLHttpRequest();
+                        xhttp.open('GET', `/reset`, true);
+                        xhttp.send();
+                    });
             });
         </script>
     </body>
