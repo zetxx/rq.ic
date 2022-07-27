@@ -61,9 +61,9 @@ const server = async(
         const server = createServer({
             keepAlive: false,
             allowHalfOpen: false
-        }, (cc) => {
+        }, async(cc) => {
         const dt = dataCollector();
-        const c = client(() => {
+        const c = await client(() => {
             cc.on('data', (d) => {
                 dt.set('request', d);
                 c.write(d);
@@ -103,12 +103,24 @@ const clientFab = ({
         port,
         hostname: host
     } = parse(destination);
-    return createConnection({
-        port,
-        host,
-        keepAlive: false,
-        allowHalfOpen: false
-    }, onConn);
+    const cf = (resolve, c = 0) => {
+        const cc = createConnection({
+            port,
+            host,
+            keepAlive: false,
+            allowHalfOpen: false
+        }, (...args) => {
+            resolve(cc);
+            setTimeout(() => onConn(...args), 10);
+        });
+        cc.on('error', (e) => {
+            cc.end();
+            setTimeout(() => cf(resolve, c + 1), c * 1000);
+        });
+    };
+    return new Promise((resolve) => {
+        cf(resolve);
+    });
 };
 
 const repeatFab = (client, packets) => (id) => {
