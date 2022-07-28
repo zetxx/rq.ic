@@ -123,11 +123,11 @@ const clientFab = ({
     });
 };
 
-const repeatFab = (client, packets) => (id) => {
+const repeatFab = (client, packets) => async(id) => {
     const packet = packets.items()[id];
     const dt = dataCollector();
     dt.set('request', packet.request);
-    const c = client(() => {
+    const c = await client(() => {
         c.on('data', (d) => {
             dt.set('response', d);
             setTimeout(() => c.end(), 5000);
