@@ -53,7 +53,8 @@ function parseRequest(input) {
     parser.finish();
 
     if (!complete) {
-        throw new Error('Could not parse request');
+        console.error('Could not parse request');
+        return Buffer.from([]).toString('base64');
     }
 
     let body = Buffer.concat(bodyChunks).toString('base64');
@@ -118,7 +119,8 @@ function parseResponse(input) {
     parser.finish();
 
     if (!complete) {
-        throw new Error('Could not parse');
+        console.error('Could not parse');
+        return Buffer.from([]).toString('base64');
     }
 
     let body = Buffer.concat(bodyChunks).toString('base64');
