@@ -94,7 +94,8 @@
                 }
                 return data;
             };
-            ws = new WebSocket(`ws://localhost:${window.location.port}`);
+            const proto = (location.protocol === 'http:' && 'ws') || 'wss';
+            ws = new WebSocket(`${proto}://${location.hostname}:${window.location.port}/ws`);
             ws.addEventListener('message', async({data}) => {
                 const [idx, {body: sBody, ...request}, {body: cBody, ...response}] = JSON.parse(data);
                 const cont = document.getElementById("data");
@@ -131,7 +132,7 @@
                 repeat.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const xhttp = new XMLHttpRequest();
-                    xhttp.open('GET', `/repeat/${idx}`, true);
+                    xhttp.open('GET', `repeat/${idx}`, true);
                     xhttp.send();
                 });
                 code.appendChild(textCode);
@@ -148,7 +149,7 @@
                             child.remove();
                         });
                         const xhttp = new XMLHttpRequest();
-                        xhttp.open('GET', `/reset`, true);
+                        xhttp.open('GET', `reset`, true);
                         xhttp.send();
                     });
             });

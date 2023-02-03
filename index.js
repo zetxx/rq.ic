@@ -40,7 +40,7 @@ const toStr = ({
 
 (async() => {
     const {packets, repeat} = await lib(conf.interceptor);
-    wsRouter.get('/', async (ctx, next) => {
+    wsRouter.get('/ws', async (ctx, next) => {
         try {
             packets.items().map(
                 (item, idx) =>

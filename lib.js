@@ -49,7 +49,7 @@ const dataCollector = () => {
         get() {
             return collection;
         }
-    }
+    };
 };
 
 const server = async(
@@ -88,11 +88,11 @@ const server = async(
             });
         });
     });
-    
+
     server.on('error', (err) => {
         console.error(err);
     });
-    
+
     server.listen(listen, () => console.log(`IC: listening on: ${listen}`));
 };
 
