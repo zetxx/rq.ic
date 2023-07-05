@@ -1,12 +1,11 @@
-const package = require('./package.json');
-const conf = require('rc')(package.name);
+const conf = require('rc')(require('./package.json').name);
 const Koa = require('koa');
 const Router = require('@koa/router');
 const websockify = require('koa-websocket');
 const serve = require('koa-static');
 const httpParser = require('./http-parser');
 
-const lib = require('./lib');
+const listener = require('./lib/listener');
 const app = websockify(new Koa());
 
 const wsRouter = Router();
@@ -39,8 +38,8 @@ const toStr = ({
 };
 
 (async() => {
-    const {packets, repeat} = await lib(conf.interceptor);
-    wsRouter.get('/ws', async (ctx, next) => {
+    const {packets, repeat} = await listener(conf.interceptor);
+    wsRouter.get('/ws', async(ctx, next) => {
         try {
             packets.items().map(
                 (item, idx) =>
