@@ -97,21 +97,25 @@
             const proto = (location.protocol === 'http:' && 'ws') || 'wss';
             ws = new WebSocket(`${proto}://${location.hostname}:${window.location.port}/ws`);
             ws.addEventListener('message', async({data}) => {
-                const [idx, {body: sBody, ...request}, {body: cBody, ...response}] = JSON.parse(data);
+                const {idx, request: rq, response: resp} = JSON.parse(data);
+                const request = (() => {
+                    const s = atob(rq);
+                    const ss = s.split('\r').join('').split('\n').shift().split(' ');
+                    return {method: ss[0], url: ss[1], text: s};
+                })();
+                const response = (() => {
+                    const s = atob(resp);
+                    const ss = s.split('\r').join('').split('\n').shift().split(' ');
+                    return {statusCode: ss[1], url: ss[1], text: s};
+                })();
                 const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
                     `${idx + 1}: ${request.method} ${request.url}; ${response.statusCode};`
                 );
                 const textCode = document.createTextNode(
                     JSON.stringify({
-                        request: {
-                            ...request,
-                            body: await bodyTrans(sBody, request, 'request')
-                        },
-                        response: {
-                            ...response,
-                            body: await bodyTrans(cBody, response, 'response')
-                        }
+                        request: request.text,
+                        response: response.text
                     }, null, 2)
                 );
                 const li = document.createElement('li');
