@@ -82,17 +82,20 @@
                 if (body.indexOf(endings[ending]) > -1) {
                     body = body.slice(0, (((rn > -1) && 4) || 2) * -1);
                 }
-                const headers = data
+                const ph = data
                     .toLowerCase()
                     .slice(0, pos)
-                    .split(lineEndings[ending])
+                    .split(lineEndings[ending]);
+                const fa = ph.shift();
+                const headers = ph
                     .map((v) => v.trim().split(':'))
                     .reduce((h, [k, v]) => ({...h, [k]: v?.trim()}), {});
 
                 return {
                     headers,
                     body,
-                    json: headers['content-type']?.indexOf('application/json') > -1
+                    json: headers['content-type']?.indexOf('application/json') > -1,
+                    fa: fa.split(' ').map((v) => v.trim())
                 };
             };
             const proto = (location.protocol === 'http:' && 'ws') || 'wss';
@@ -103,12 +106,10 @@
                     try {
                         const s = atob(rq);
                         const hb = bodyHeaders(s);
-                        const a = s.split('\r').join('').split('\n');
-                        const ss = a.shift().split(' ');
                         if (hb.json && hb.body) {
                             hb.body = JSON.parse(hb.body);
                         }
-                        return {method: ss[0], url: ss[1], text: s, ...hb};
+                        return {method: hb.fa[0], url: hb.fa[1], ...hb};
                     } catch (e) {
                         console.error(e);
                     }
@@ -117,13 +118,6 @@
                     try {
                         const s = atob(resp);
                         const hb = bodyHeaders(s);
-                        const rn = s.indexOf('\r\n\r\n');
-                        const r = s.indexOf('\n\n');
-                        const pos = ((rn > -1) && rn) || r;
-                        const h = s.slice(0, pos).split('\r').join('');
-                        const b = s.slice(pos + ((rn > -1) && 4) || 2).slice(0, (((rn > -1) && 4) || 2) * -1);
-                        const ah = h.split('\n');
-                        const ss = ah.shift().split(' ');
                         const db = await (async() => {
                             if (!hb.headers['content-encoding'] || hb.headers['content-encoding'].indexOf('gzip') === -1) {
                                 if (hb.json && hb.body) {
@@ -151,7 +145,7 @@
                                 }
                             }
                         })();
-                        return {statusCode: ss[1], url: ss[1], text: s, headers: hb.headers, body: db};
+                        return {statusCode: hb.fa[1], url: hb.fa[1], headers: hb.headers, body: db};
                     } catch (e) {
                         console.error(e);
                     }
