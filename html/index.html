@@ -70,30 +70,6 @@
                 const dsb = await new Response(dss).blob();
                 return await dsb.text();
             }
-            const bodyTrans = async(data, params, type) => {
-                if (
-                    data &&
-                    params
-                ) {
-                    if (params.headers.findIndex((h) => h.indexOf('application/json') >= 0) >= 0) {
-                        try {
-                            if (type === 'response' && params.headers.findIndex((h) => h.indexOf('gzip') >= 0) >= 0) {
-                                const c = await decompressBlob(data);
-                                return JSON.parse(c);
-                            }
-                            return JSON.parse(window.atob(data));
-                        } catch (e) {
-                            return window.atob(data);
-                        }
-                    } else if (params.headers.findIndex((h) => h.indexOf('xml') >= 0) >= 0) {
-                        if (type === 'response' && params.headers.findIndex((h) => h.indexOf('gzip') >= 0) >= 0) {
-                            return await decompressBlob(data);
-                        }
-                        return window.atob(data);
-                    }
-                }
-                return data;
-            };
             const proto = (location.protocol === 'http:' && 'ws') || 'wss';
             ws = new WebSocket(`${proto}://${location.hostname}:${window.location.port}/ws`);
             ws.addEventListener('message', async({data}) => {
@@ -101,17 +77,39 @@
                 const request = (() => {
                     try {
                         const s = atob(rq);
-                        const ss = s.split('\r').join('').split('\n').shift().split(' ');
-                        return {method: ss[0], url: ss[1], text: s};
+                        const a = s.split('\r').join('').split('\n');
+                        const ss = a.shift().split(' ');
+                        return {method: ss[0], url: ss[1], text: s, data: a};
                     } catch (e) {
                         console.error(e);
                     }
                 })();
-                const response = (() => {
+                const response = await(async() => {
                     try {
                         const s = atob(resp);
-                        const ss = s.split('\r').join('').split('\n').shift().split(' ');
-                        return {statusCode: ss[1], url: ss[1], text: s};
+                        const rn = s.indexOf('\r\n\r\n');
+                        const r = s.indexOf('\n\n');
+                        const pos = ((rn > -1) && rn) || r;
+                        const h = s.slice(0, pos);
+                        const b = s.slice(pos + ((rn > -1) && 4) || 2).slice(0, (((rn > -1) && 4) || 2) * -1);
+                        const ah = h.split('\r').join('').split('\n');
+                        const ss = ah.shift().split(' ');
+                        const db = await (async() => {
+                            try {
+                                return await decompressBlob(
+                                    btoa(
+                                        b
+                                            .split('a\r\n')
+                                            .join('')
+                                            .split('\r\n0')
+                                            .join('')
+                                    )
+                                );
+                            } catch (e) {
+                                return b;
+                            }
+                        })();
+                        return {statusCode: ss[1], url: ss[1], text: s, headers: ah, body: b};
                     } catch (e) {
                         console.error(e);
                     }
@@ -122,8 +120,11 @@
                 );
                 const textCode = document.createTextNode(
                     JSON.stringify({
-                        request: request.text,
-                        response: response.text
+                        request: request.data,
+                        response: {
+                            headers: response.headers,
+                            body: response.body
+                        }
                     }, null, 2)
                 );
                 const li = document.createElement('li');
