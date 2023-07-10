@@ -99,14 +99,22 @@
             ws.addEventListener('message', async({data}) => {
                 const {idx, request: rq, response: resp} = JSON.parse(data);
                 const request = (() => {
-                    const s = atob(rq);
-                    const ss = s.split('\r').join('').split('\n').shift().split(' ');
-                    return {method: ss[0], url: ss[1], text: s};
+                    try {
+                        const s = atob(rq);
+                        const ss = s.split('\r').join('').split('\n').shift().split(' ');
+                        return {method: ss[0], url: ss[1], text: s};
+                    } catch (e) {
+                        console.error(e);
+                    }
                 })();
                 const response = (() => {
-                    const s = atob(resp);
-                    const ss = s.split('\r').join('').split('\n').shift().split(' ');
-                    return {statusCode: ss[1], url: ss[1], text: s};
+                    try {
+                        const s = atob(resp);
+                        const ss = s.split('\r').join('').split('\n').shift().split(' ');
+                        return {statusCode: ss[1], url: ss[1], text: s};
+                    } catch (e) {
+                        console.error(e);
+                    }
                 })();
                 const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
