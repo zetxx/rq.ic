@@ -116,7 +116,13 @@
                 })();
                 const response = await(async() => {
                     try {
+                        if (!resp.length) {
+                            return {};
+                        }
                         const s = atob(resp);
+                        if (s.toLowerCase().indexOf('error') > -1) {
+                            return {statusCode: 500, url: '', headers: {}, body: s};
+                        }
                         const hb = bodyHeaders(s);
                         const db = await (async() => {
                             if (!hb.headers['content-encoding'] || hb.headers['content-encoding'].indexOf('gzip') === -1) {
