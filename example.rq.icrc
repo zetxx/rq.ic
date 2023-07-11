@@ -1,8 +1,8 @@
 {
-    "interceptor": {
+    "interceptors": [{
         "listen": 8080,
         "destination": "http://example.com:80"
-    },
+    }],
     "frontend": {
         "listen": 3000
     }

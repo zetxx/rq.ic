@@ -1,67 +1,67 @@
 <html>
     <style>
-        #data, #data li, #data div, #data code, #data span, #data a, #controls,
-        #controls li {
+        .data, .data li, .data div, .data code, .data span, .data a, .controls,
+        .controls li {
             display: block;
             overflow: hidden;
         }
-        #data, #controls {
+        .data, .controls {
             margin: 0;
             padding: 0;
         }
-        #data li{
+        .data li{
             border: 1px solid rgb(153, 174, 193);
             padding: 3px;
             background-color: rgb(208, 228, 246);
             margin-bottom: 2px;
         }
-        #data div {
+        .data div {
             background-color: bisque;
             cursor: pointer;
             padding: 3px;
         }
-        #data li.sc200 div {
+        .data li.sc200 div {
             background-color: #7daa7a;
         }
-        #data li.sc500 div {
+        .data li.sc500 div {
             background-color: #e19687;
         }
-        #data pre {
+        .data pre {
             display: none;
             overflow: auto;
         }
-        #data span, #data a{
+        .data span, .data a{
             float: left;
         }
-        #data span {
+        .data span {
             min-width: 500px;
         }
-        #data a {
+        .data a {
             color: rgb(245, 226, 226);
             font-weight: bolder;
             text-shadow: 0px 0px 2px #000000;
         }
-        #controls {
+        .controls {
+            position: relative;
             margin-bottom: 20px;
             background-color: #f5fbf4;
             border-bottom: 2px solid #145a09;
         }
-        #controls li {
+        .controls li {
             float: right;
         }
-        #controls li.act {
+        .controls li.act {
             cursor: pointer;
+            position: absolute;
+            top: 0;
+            right: 10px;
         }
-        #control-space-right {
+        .control-space-right {
             margin-right: 50px;
         }
     </style>
     <body>
-        <ul id="controls">
-            <li id="control-space-right">&nbsp;</li>
-            <li class="act" id="control-clear">⎚</li>
-        </ul>
-        <ul id="data"></ul>
+        <div id="container"></div>
         <script>
             const endings = {n: '\n\n', rn: '\r\n\r\n'};
             const lineEndings = {n: '\n', rn: '\r\n'};
@@ -101,7 +101,37 @@
             const proto = (location.protocol === 'http:' && 'ws') || 'wss';
             ws = new WebSocket(`${proto}://${location.hostname}:${window.location.port}/ws`);
             ws.addEventListener('message', async({data}) => {
-                const {idx, request: rq, response: resp} = JSON.parse(data);
+                const {idx, comIdx, request: rq, response: resp = ''} = JSON.parse(data);
+                let cont = document.getElementById(`data-${comIdx}`);
+                if (!cont) {
+                    const rootEl = document.getElementById('container');
+                    const cc = document.createElement('ul');
+                    cc.classList.add('controls');
+                    const ca = document.createElement('li');
+                    ca.innerHTML = '⎚';
+                    const cccr = document.createElement('li');
+                    ca.classList.add('act');
+                    cccr.classList.add('control-space-right');
+                    cccr.innerHTML = "&nbsp;";
+                    ca.setAttribute('id', `control-clear-${comIdx}`);
+                    ca.addEventListener('click', () => {
+                        document
+                            .getElementById(`data-${comIdx}`)
+                            .childNodes.forEach((child) => {
+                                child.remove();
+                            });
+                        const xhttp = new XMLHttpRequest();
+                        xhttp.open('GET', `reset/${comIdx}`, true);
+                        xhttp.send();
+                    });
+                    cc.appendChild(ca);
+                    cc.appendChild(cccr);
+                    cont = document.createElement('ul');
+                    cont.classList.add('data');
+                    cont.setAttribute('id', `data-${comIdx}`);
+                    rootEl.appendChild(cc);
+                    rootEl.appendChild(cont);
+                }
                 const request = (() => {
                     try {
                         const s = atob(rq);
@@ -120,7 +150,7 @@
                             return {};
                         }
                         const s = atob(resp);
-                        if (s.toLowerCase().indexOf('error') > -1) {
+                        if (s.toLowerCase().indexOf('error:') > -1) {
                             return {statusCode: 500, url: '', headers: {}, body: s};
                         }
                         const hb = bodyHeaders(s);
@@ -147,7 +177,7 @@
                                     }
                                     return txt;
                                 } catch (e) {
-                                    return b;
+                                    return hb.body;
                                 }
                             }
                         })();
@@ -156,7 +186,6 @@
                         console.error(e);
                     }
                 })();
-                const cont = document.getElementById("data");
                 const textSpan = document.createTextNode(
                     `${idx + 1}: ${request.method} ${request.url}; ${response.statusCode};`
                 );
@@ -190,7 +219,7 @@
                 repeat.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const xhttp = new XMLHttpRequest();
-                    xhttp.open('GET', `repeat/${idx}`, true);
+                    xhttp.open('GET', `repeat/${comIdx}/${idx}`, true);
                     xhttp.send();
                 });
                 code.appendChild(textCode);
@@ -199,17 +228,6 @@
                 li.appendChild(div);
                 li.appendChild(code);
                 cont.appendChild(li);
-
-                document
-                    .getElementById("control-clear")
-                    .addEventListener('click', () => {
-                        cont.childNodes.forEach((child) => {
-                            child.remove();
-                        });
-                        const xhttp = new XMLHttpRequest();
-                        xhttp.open('GET', `reset`, true);
-                        xhttp.send();
-                    });
             });
         </script>
     </body>
