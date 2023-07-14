@@ -117,9 +117,7 @@
                     ca.addEventListener('click', () => {
                         document
                             .getElementById(`data-${comIdx}`)
-                            .childNodes.forEach((child) => {
-                                child.remove();
-                            });
+                            .innerHTML = '';
                         const xhttp = new XMLHttpRequest();
                         xhttp.open('GET', `reset/${comIdx}`, true);
                         xhttp.send();
