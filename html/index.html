@@ -83,7 +83,6 @@
                     body = body.slice(0, (((rn > -1) && 4) || 2) * -1);
                 }
                 const ph = data
-                    .toLowerCase()
                     .slice(0, pos)
                     .split(lineEndings[ending]);
                 const fa = ph.shift();
@@ -91,10 +90,12 @@
                     .map((v) => v.trim().split(':'))
                     .reduce((h, [k, v]) => ({...h, [k]: v?.trim()}), {});
 
+                const ctIdx = Object.keys(headers).find((s) => s.toLowerCase().indexOf('content-type') > -1);
+                const ct = ((ctIdx && headers[ctIdx]) || '').toLowerCase();
                 return {
                     headers,
                     body,
-                    json: headers['content-type']?.indexOf('application/json') > -1,
+                    json: ct.indexOf('application/json') > -1,
                     fa: fa.split(' ').map((v) => v.trim())
                 };
             };
