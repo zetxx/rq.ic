@@ -172,7 +172,6 @@
                         }
                         const hb = bodyHeaders(s);
                         const db = await (async() => {
-                            console.log(hb.headersLower['transfer-encoding'])
                             if (!hb.headersLower['content-encoding'] || hb.headersLower['content-encoding'].indexOf('gzip') === -1) {
                                 if (hb.json && hb.body) {
                                     return JSON.parse(hb.body);
