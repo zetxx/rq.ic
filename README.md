@@ -6,7 +6,14 @@
 {
     "interceptor": {
         "listen": 8080,
-        "destination": "http://example.com:80"
+        "destination": {
+            "url": "http://example.com:80",
+            "headers": {
+                "request": {
+                    "host": "example.com"
+                }
+            }
+        }
     },
     "frontend": {
         "listen": 3000
