@@ -92,8 +92,26 @@
 
                 const ctIdx = Object.keys(headers).find((s) => s.toLowerCase().indexOf('content-type') > -1);
                 const ct = ((ctIdx && headers[ctIdx]) || '').toLowerCase();
+                const headersLower = Object.keys(headers).reduce((a, c) => ({...a, [c.toLowerCase()]: headers[c]}), {});
+                if (headersLower['transfer-encoding'] && headersLower['transfer-encoding'] === 'chunked') {
+                    body = body.split('\r\n').slice(0, -1)
+                        .reduce((a, c, idx, arr) => {
+                            if (idx % 2 !== 0) {
+                                const s = parseInt(arr[idx - 1], 16);
+                                if (s !== c.length) {
+                                    throw new Error('chunked encoding calc error');
+                                }
+                                return [
+                                    a,
+                                    c
+                                ].join('');
+                            }
+                            return a;
+                        }, '');
+                }
                 return {
                     headers,
+                    headersLower,
                     body,
                     json: ct.indexOf('application/json') > -1,
                     fa: fa.split(' ').map((v) => v.trim())
@@ -154,7 +172,8 @@
                         }
                         const hb = bodyHeaders(s);
                         const db = await (async() => {
-                            if (!hb.headers['content-encoding'] || hb.headers['content-encoding'].indexOf('gzip') === -1) {
+                            console.log(hb.headersLower['transfer-encoding'])
+                            if (!hb.headersLower['content-encoding'] || hb.headersLower['content-encoding'].indexOf('gzip') === -1) {
                                 if (hb.json && hb.body) {
                                     return JSON.parse(hb.body);
                                 } else {
