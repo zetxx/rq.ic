@@ -4,7 +4,7 @@
 
 ```json
 {
-    "interceptor": {
+    "interceptors": [{
         "listen": 8080,
         "destination": {
             "url": "http://example.com:80",
@@ -14,7 +14,7 @@
                 }
             }
         }
-    },
+    }],
     "frontend": {
         "listen": 3000
     }
